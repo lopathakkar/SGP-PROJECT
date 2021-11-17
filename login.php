@@ -1,40 +1,65 @@
 <?php
-// connect to the database
-$server="localhost:3306";
-$username="root";
-$password="";
-$database_name="costumer_details";
-$errors = array();
-$con = mysqli_connect($server, $username, $password, $database_name);
-if($con){
-    if (isset($_POST['login'])) {
-        // receive all input values from the register.php form
-        $username = mysqli_real_escape_string($con, $_POST['user']);  
-        $pass = mysqli_real_escape_string($con, $_POST['pass']);  
-      
-        $sql = "select * from car where email = '$username' and password = '$pass'";  
-        $result = mysqli_query($con, $sql);  
-        $row = mysqli_fetch_array($result, MYSQLI_ASSOC);  
-        $count = mysqli_num_rows($result);  
-          
-        if($count == 1){  
-            session_start();
+if(isset($_POST['login']))
+{
+$email=$_POST['email'];
+$password=md5($_POST['password']);
+$sql ="SELECT EmailId,Password,FullName FROM tblusers WHERE EmailId=:email and Password=:password";
+$query= $dbh -> prepare($sql);
+$query-> bindParam(':email', $email, PDO::PARAM_STR);
+$query-> bindParam(':password', $password, PDO::PARAM_STR);
+$query-> execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+if($query->rowCount() > 0)
+{
+$_SESSION['login']=$_POST['email'];
+$_SESSION['fname']=$results->FullName;
+$currentpage=$_SERVER['REQUEST_URI'];
+echo "<script type='text/javascript'> document.location = '$currentpage'; </script>";
+} else{
+  
+  echo "<script>alert('Invalid Details');</script>";
 
-    $_SESSION["name"] = $row["name"];
-    $_SESSION["DOB"] = $row["DOB"];
-    $_SESSION["address"] = $row["address"];
-    $_SESSION["carname"] = $row["car_name"];
-    $_SESSION["companyname"] = $row["car_company"];
-    $_SESSION["carnumber"] = $row["car_number"];
-    $_SESSION["email"] = $row["email"];
-
-                            
-                            // Redirect user to welcome page
-                            header("location: welcome.php");
-        }  
-        else{  
-            echo "<h1> Login failed. Invalid username or password.</h1>";  
-        }     
-    }
 }
+
+}
+
 ?>
+
+<div class="modal fade" id="loginform">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h3 class="modal-title">Login</h3>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="login_wrap">
+            <div class="col-md-12 col-sm-6">
+              <form method="post">
+                <div class="form-group">
+                  <input type="email" class="form-control" name="email" placeholder="Email address*">
+                </div>
+                <div class="form-group">
+                  <input type="password" class="form-control" name="password" placeholder="Password*">
+                </div>
+                <div class="form-group checkbox">
+                  <input type="checkbox" id="remember">
+               
+                </div>
+                <div class="form-group">
+                  <input type="submit" name="login" value="Login" class="btn btn-block">
+                </div>
+              </form>
+            </div>
+           
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer text-center">
+        <p>Don't have an account? <a href="#signupform" data-toggle="modal" data-dismiss="modal">Signup Here</a></p>
+        <p><a href="#forgotpassword" data-toggle="modal" data-dismiss="modal">Forgot Password ?</a></p>
+      </div>
+    </div>
+  </div>
+</div>
